@@ -89,7 +89,7 @@ def da_train(
         train_ds,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=20,
+        num_workers=4,
         collate_fn=pad_batch_images,
     )  # prefetch_factor=2
     val_ds = CTCDataset(
@@ -101,7 +101,7 @@ def da_train(
         encoding_type=encoding_type,
     )
     val_loader = DataLoader(
-        val_ds, batch_size=1, shuffle=False, num_workers=20
+        val_ds, batch_size=1, shuffle=False, num_workers=4
     )  # prefetch_factor=2
     test_ds = CTCDataset(
         name=test_ds_name,
@@ -112,7 +112,7 @@ def da_train(
         encoding_type=encoding_type,
     )
     test_loader = DataLoader(
-        test_ds, batch_size=1, shuffle=False, num_workers=20
+        test_ds, batch_size=1, shuffle=False, num_workers=4
     )  # prefetch_factor=2
 
     # Model

@@ -60,7 +60,7 @@ def test(
         encoding_type=encoding_type,
     )
     test_loader = DataLoader(
-        test_ds, batch_size=1, shuffle=False, num_workers=20
+        test_ds, batch_size=1, shuffle=False, num_workers=4
     )  # prefetch_factor=2
 
     # Model
