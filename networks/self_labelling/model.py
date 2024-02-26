@@ -4,6 +4,7 @@ import torch
 from torch.nn import CTCLoss
 
 from networks.base.model import CTCTrainedCRNN
+from networks.amd.da_model import DATrainedCRNN
 from my_utils.augmentations import AugmentStage
 from my_utils.data_preprocessing import preprocess_image_from_file
 
@@ -44,9 +45,14 @@ class SLTrainedCRNN(CTCTrainedCRNN):
     def initialize_src_model(self):
         # 1) Load source model
         print(f"Loading source model from {self.src_checkpoint_path}")
-        src_model = CTCTrainedCRNN.load_from_checkpoint(
-            self.src_checkpoint_path, ytest_i2w=self.ytest_i2w
-        )
+        try:
+            src_model = CTCTrainedCRNN.load_from_checkpoint(
+                self.src_checkpoint_path, ytest_i2w=self.ytest_i2w
+            )
+        except:
+            src_model = DATrainedCRNN.load_from_checkpoint(
+                self.src_checkpoint_path, ytest_i2w=self.ytest_i2w
+            )
         # 2) Deep copy the source model
         self.model = deepcopy(src_model.model)
         # 3) Deep copy the source model's dictionaries
