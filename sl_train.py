@@ -18,7 +18,7 @@ torch.manual_seed(42)
 
 # Deterministic behavior
 torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.deterministic = False
 
 from data.config import DS_CONFIG
 from my_utils.dataset import CTCDataset
@@ -155,7 +155,7 @@ def self_labelled_train(
         callbacks=callbacks,
         max_epochs=epochs,
         check_val_every_n_epoch=1,
-        deterministic=True,
+        deterministic=False,
         benchmark=False,
         precision="16-mixed",  # Mixed precision training
     )
