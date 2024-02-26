@@ -12,7 +12,7 @@ from networks.base.modules import BN_IDS
 
 def get_group_runs(project_name="AMD-Self-Labelled-OMR", group_name="SCapitan-TILS"):
     api = wandb.Api()
-    runs = api.runs(project_name, {"group": group_name})
+    runs = api.runs(f"grfia/{project_name}", {"group": group_name})
     # Filter those runs that have finished
     runs = [run for run in runs if run.state == "finished"]
     names = [run.name for run in runs]
