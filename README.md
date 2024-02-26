@@ -2,7 +2,7 @@
   <a href='https://praig.ua.es/'><img src='https://i.imgur.com/Iu7CvC1.png' alt='PRAIG-logo' width='100'></a>
 </p>
 
-<h1 align='center'>Source-Free Domain Adaptation for Optical Music Recognition</h1>
+<h1 align='center'>Synthetic-to-Real Domain Adaptation for Optical Music Recognition</h1>
 
 <!---
 <h4 align='center'>Full text coming soon<a href='' target='_blank'></a>.</h4>
@@ -32,33 +32,21 @@
 
 ### Set up
 
-Install the required [`libraries`](requirements.txt):
-```bash
-pip install -r requirements
-```
-
-Alternatively, you can use the included [`Dockerfile`](Dockerfile):
+You can use the included [`Dockerfile`](Dockerfile):
 ```bash
 docker build --tag omr_amd:latest .
 ```
 
 ### Datasets
 
-**We evaluate our approach on both mensural and modern music notation.**
-- For mensural notation, we use *Capitan* (or b-59-850), *Il Lauro Secco*, *Magnificat*, *Mottecta*, and *Guatemala* datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder.
-- For modern notation, 
-    - we use [*PrIMuS*](https://grfia.dlsi.ua.es/primus/) and [*CameraPrIMuS*](https://grfia.dlsi.ua.es/primus/) as the source datasets. Both of them are public. To obtain them and prepare them for later use, run the following script:
-        ```bash 
-        $ python -u data/Primus/parser.py
-        ```
-    - *AMDC* (or Malaga) and *FMT* are the target datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder. 
+**We evaluate our approach on mensural music notation:**
+- We use *Capitan* (or b-59-850), *Il Lauro Secco*, *Magnificat*, *Mottecta*, and *Guatemala* datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder.
+
 
 
 ### Experiments
 
-In the case of mensural notation experiments, we use each dataset as a source and try to adapt the corresponding source model to each of the remaining datasets.
-
-In the case of modern notation experiments, we only use PrIMuS (synthetic) and CameraPrIMuS (synthetic) as the source datasets and try to adapt their corresponding models to the real datasets, AMDC and FMT.
+We use each dataset as a source and try to adapt the corresponding source model to each of the remaining datasets.
 
 We perform a random seach of 50 runs for each source-target combination and keep the best one as the final result. Execute the [`run_experiments.sh`](run_experiments.sh) script to replicate the experiments from our work:
 
