@@ -75,6 +75,7 @@ def test(
             group=group,
             name=run_name,
             log_model=False,
+            entity="grfia",
         ),
         precision="16-mixed",
     )

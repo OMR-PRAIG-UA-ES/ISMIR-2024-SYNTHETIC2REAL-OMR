@@ -152,6 +152,7 @@ def self_labelled_train(
             group=group,
             name=model_name,
             log_model=False,
+            entity="grfia",
         ),
         callbacks=callbacks,
         max_epochs=epochs,

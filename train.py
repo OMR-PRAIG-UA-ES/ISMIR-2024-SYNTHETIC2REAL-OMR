@@ -128,6 +128,7 @@ def train(
             group=group,
             name=f"{encoding_type.upper()}-Train-{ds_name}_Test-{ds_name}",
             log_model=False,
+            entity="grfia",
         ),
         callbacks=callbacks,
         max_epochs=epochs,
