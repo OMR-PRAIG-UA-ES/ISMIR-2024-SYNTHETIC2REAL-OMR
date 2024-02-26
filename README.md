@@ -46,9 +46,11 @@ docker build --tag omr_amd:latest .
 ### Experiments
 
 We use Primens as the source dataset and try to adapt its corresponding source model to each of the remaining datasets. There are two adaptation stages:
+
 **1. Source-Free Domain Adaptation using the AMD method**
 
   We perform a random seach of 50 runs for each source-target combination and keep the best one as the final result.
+  
 **2. Source-Free Self-Labelling Adaptation**
 
   The best model from 1. is further fine-tuned using a self-labelled dataset. Such a dataset is first created using the shelf-off predictions from model 1. based on a confidence threshold. That first dataset is used to fine-tune in a supervised way the model. At the end of each epoch, the remaining samples (those not considered due to low confidence) are evaluated again to see if they can be now considered.
