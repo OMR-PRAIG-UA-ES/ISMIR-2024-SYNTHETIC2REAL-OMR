@@ -2,27 +2,33 @@ import re
 import joblib
 
 import torch
+import numpy as np
 from PIL import Image
 import torch.nn.functional as F
-from torchvision import transforms
 
 MEMORY = joblib.memory.Memory("./cache", mmap_mode="r", verbose=0)
 
 NUM_CHANNELS = 1
 IMG_HEIGHT = 64
-toTensor = transforms.ToTensor()
 
 ################################# Image preprocessing:
 
 
 @MEMORY.cache
 def preprocess_image_from_file(path):
-    x = Image.open(path).convert("L")  # Convert to grayscale
-    new_width = int(
-        IMG_HEIGHT * x.size[0] / x.size[1]
-    )  # Get width preserving aspect ratio
-    x = x.resize((new_width, IMG_HEIGHT))  # Resize
-    x = toTensor(x)  # Convert to tensor (normalizes to [0, 1])
+    # Convert to grayscale
+    x = Image.open(path).convert("L")
+    # Resize (preserving aspect ratio)
+    new_width = int(IMG_HEIGHT * x.size[0] / x.size[1])
+    x = x.resize((new_width, IMG_HEIGHT))
+    # Convert to numpy array
+    x = np.array(x, dtype=np.float32)
+    # Normalize to [0, 1]
+    x = (x - np.amin(x)) / (np.amax(x) - np.amin(x))
+    # Add channel dimension
+    x = np.expand_dims(x, axis=0)
+    # Convert to tensor
+    x = torch.from_numpy(x)
     return x
 
 
