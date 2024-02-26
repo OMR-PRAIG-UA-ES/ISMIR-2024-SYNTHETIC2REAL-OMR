@@ -43,13 +43,17 @@ docker build --tag omr_amd:latest .
 - We use *Capitan* (or b-59-850), *Il Lauro Secco*, *Magnificat*, *Mottecta*, and *Guatemala* datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder.
 
 
-
 ### Experiments
 
-We use each dataset as a source and try to adapt the corresponding source model to each of the remaining datasets.
+We use Primens as the source dataset and try to adapt its corresponding source model to each of the remaining datasets.
+There are two adaptation stages:
+1. Source-Free Domain Adaptation using the AMD method
+  We perform a random seach of 50 runs for each source-target combination and keep the best one as the final result.
+2. Source-Free Self-Labelling Adaptation
+  The best model from 1. is further fine-tuned using a self-labelled dataset. Such a dataset is first created using the shelf-off predictions from model 1. based on a confidence threshold. That first dataset is used to fine-tune in a supervised way the model. At the end of each epoch, the remaining samples (those not considered due to low confidence) are evaluated again to see if they can be now considered.
 
-We perform a random seach of 50 runs for each source-target combination and keep the best one as the final result. Execute the [`run_experiments.sh`](run_experiments.sh) script to replicate the experiments from our work:
 
+Execute the [`run_experiments.sh`](run_experiments.sh) script to replicate the experiments from our work:
 ```bash 
 $ bash run_experiments.sh
 ```
