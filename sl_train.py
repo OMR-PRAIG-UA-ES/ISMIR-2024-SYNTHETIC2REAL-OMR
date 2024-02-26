@@ -109,7 +109,6 @@ def self_labelled_train(
 
     # Model
     model = SLTrainedCRNN(
-        train_dataloader=train_loader,
         src_checkpoint_path=checkpoint_path,
         ytest_i2w=train_ds.i2w,
         confidence_threshold=confidence_threshold,
