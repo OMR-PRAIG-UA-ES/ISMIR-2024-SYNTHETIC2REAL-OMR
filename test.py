@@ -3,15 +3,15 @@ import os
 import random
 
 import fire
-import numpy as np
 import torch
+import numpy as np
 from lightning.pytorch import Trainer
-from lightning.pytorch.loggers.wandb import WandbLogger
 from torch.utils.data import DataLoader
+from lightning.pytorch.loggers.wandb import WandbLogger
 
 from data.config import DS_CONFIG
 from my_utils.dataset import CTCDataset
-from networks.model import CTCTrainedCRNN
+from networks.base.model import CTCTrainedCRNN
 
 # Seed
 random.seed(42)

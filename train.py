@@ -2,17 +2,17 @@ import gc
 import random
 
 import fire
-import numpy as np
 import torch
+import numpy as np
 from lightning.pytorch import Trainer
+from torch.utils.data import DataLoader
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers.wandb import WandbLogger
-from torch.utils.data import DataLoader
 
-from my_utils.data_preprocessing import ctc_batch_preparation
-from my_utils.dataset import CTCDataset
 from data.config import DS_CONFIG
-from networks.model import CTCTrainedCRNN
+from my_utils.dataset import CTCDataset
+from networks.base.model import CTCTrainedCRNN
+from my_utils.data_preprocessing import ctc_batch_preparation
 
 # Seed
 random.seed(42)

@@ -2,11 +2,11 @@ import re
 import joblib
 
 import torch
-import torch.nn.functional as F
 from PIL import Image
+import torch.nn.functional as F
 from torchvision import transforms
 
-memory = joblib.memory.Memory("./cache", mmap_mode="r", verbose=0)
+MEMORY = joblib.memory.Memory("./cache", mmap_mode="r", verbose=0)
 
 NUM_CHANNELS = 1
 IMG_HEIGHT = 64
@@ -15,7 +15,7 @@ toTensor = transforms.ToTensor()
 ################################# Image preprocessing:
 
 
-@memory.cache
+@MEMORY.cache
 def preprocess_image_from_file(path):
     x = Image.open(path).convert("L")  # Convert to grayscale
     new_width = int(
@@ -29,7 +29,7 @@ def preprocess_image_from_file(path):
 ################################# Transcript preprocessing:
 
 
-@memory.cache
+@MEMORY.cache
 def preprocess_transcript_from_file(
     path,
     w2i,

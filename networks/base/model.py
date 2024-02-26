@@ -1,14 +1,15 @@
 import random
 
 import torch
-from lightning.pytorch import LightningModule
 from torch.nn import CTCLoss
 from torchinfo import summary
+from lightning.pytorch import LightningModule
 
+
+from networks.base.modules import CRNN
 from my_utils.augmentations import AugmentStage
 from my_utils.data_preprocessing import IMG_HEIGHT, NUM_CHANNELS
 from my_utils.metrics import compute_metrics, ctc_greedy_decoder
-from networks.modules import CRNN
 
 
 class CTCTrainedCRNN(LightningModule):

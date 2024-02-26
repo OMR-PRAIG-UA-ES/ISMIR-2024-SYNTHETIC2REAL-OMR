@@ -3,12 +3,13 @@ import os
 import random
 
 import fire
-import numpy as np
 import torch
+import numpy as np
+
 from lightning.pytorch import Trainer
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
-from lightning.pytorch.loggers.wandb import WandbLogger
 from torch.utils.data import DataLoader
+from lightning.pytorch.loggers.wandb import WandbLogger
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
 # Seed
 random.seed(42)
@@ -19,10 +20,10 @@ torch.manual_seed(42)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-from my_utils.data_preprocessing import pad_batch_images
-from my_utils.dataset import CTCDataset
-from networks.da_model import DATrainedCRNN
 from data.config import DS_CONFIG
+from my_utils.dataset import CTCDataset
+from networks.amd.da_model import DATrainedCRNN
+from my_utils.data_preprocessing import pad_batch_images
 
 
 def da_train(

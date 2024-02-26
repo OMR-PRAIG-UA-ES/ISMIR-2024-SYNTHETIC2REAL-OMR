@@ -5,9 +5,9 @@ import torch
 from torchinfo import summary
 from lightning.pytorch import LightningModule
 
-from networks.modules import BN_IDS
-from networks.model import CTCTrainedCRNN
-from networks.da_loss import AMDLoss
+from networks.base.modules import BN_IDS
+from networks.amd.da_loss import AMDLoss
+from networks.base.model import CTCTrainedCRNN
 from my_utils.data_preprocessing import NUM_CHANNELS, IMG_HEIGHT
 from my_utils.metrics import ctc_greedy_decoder, compute_metrics
 
