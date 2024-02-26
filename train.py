@@ -32,7 +32,7 @@ def train(
     batch_size=16,
     use_augmentations=True,
     metric_to_monitor="val_ser",
-    project="AMD-OMR",
+    project="AMD-Self-Labelled-OMR",
     group="Baseline-UpperBound",
 ):
     gc.collect()

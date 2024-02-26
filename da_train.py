@@ -43,7 +43,7 @@ def da_train(
     batch_size=16,
     # Callbacks
     metric_to_monitor="val_ser",
-    project="AMD-OMR",
+    project="AMD-Self-Labelled-OMR",
     group="Source-Free-Adaptation",
     delete_checkpoint=False,
 ):

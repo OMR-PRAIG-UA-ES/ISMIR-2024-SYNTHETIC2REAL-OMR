@@ -28,7 +28,7 @@ def test(
     test_ds_name,
     checkpoint_path,
     encoding_type="standard",
-    project="AMD-OMR",
+    project="AMD-Self-Labelled-OMR",
     group="Baseline-LowerBound",
 ):
     gc.collect()

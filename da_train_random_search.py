@@ -10,7 +10,7 @@ from da_train import da_train
 from networks.base.modules import BN_IDS
 
 
-def get_group_runs(project_name="AMD-OMR", group_name="SCapitan-TILS"):
+def get_group_runs(project_name="AMD-Self-Labelled-OMR", group_name="SCapitan-TILS"):
     api = wandb.Api()
     runs = api.runs(project_name, {"group": group_name})
     # Filter those runs that have finished
