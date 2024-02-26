@@ -1,20 +1,14 @@
-import random
 from copy import deepcopy
 
 import torch
-from torchinfo import summary
-from lightning.pytorch import LightningModule
 
 from networks.base.modules import BN_IDS
 from networks.amd.da_loss import AMDLoss
 from networks.base.model import CTCTrainedCRNN
-from my_utils.data_preprocessing import NUM_CHANNELS, IMG_HEIGHT
-from my_utils.metrics import ctc_greedy_decoder, compute_metrics
 
 
-class DATrainedCRNN(LightningModule):
+class DATrainedCRNN(CTCTrainedCRNN):
     def __init__(self, src_checkpoint_path, ytest_i2w, bn_ids):
-        super(DATrainedCRNN, self).__init__()
         # Save hyperparameters
         self.save_hyperparameters()
         # Source model checkpoint path
@@ -93,45 +87,3 @@ class DATrainedCRNN(LightningModule):
         for k, v in loss_dict.items():
             self.log(f"train_{k}", v, prog_bar=True, logger=True, on_epoch=True)
         return loss_dict["loss"]
-
-    ############################################### Hereinafter:
-    # Same as CTCTrainedCRNN
-    # NOTE: But I'm having problems with the inheritance
-
-    def summary(self):
-        summary(self.model, input_size=[1, NUM_CHANNELS, IMG_HEIGHT, 256])
-
-    def forward(self, x):
-        return self.model(x)
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch  # batch_size = 1
-        # Model prediction (decoded using the vocabulary on which it was trained)
-        yhat = self.model(x)[0]
-        yhat = yhat.log_softmax(dim=-1).detach().cpu()
-        yhat = ctc_greedy_decoder(yhat, self.i2w)
-        # Decoded ground truth
-        y = [self.ytest_i2w[i.item()] for i in y[0]]
-        # Append to later compute metrics
-        self.Y.append(y)
-        self.YHat.append(yhat)
-
-    def test_step(self, batch, batch_idx):
-        return self.validation_step(batch, batch_idx)
-
-    def on_validation_epoch_end(self, name="val", print_random_samples=False):
-        metrics = compute_metrics(y_true=self.Y, y_pred=self.YHat)
-        for k, v in metrics.items():
-            self.log(f"{name}_{k}", v, prog_bar=True, logger=True, on_epoch=True)
-        # Print random samples
-        if print_random_samples:
-            index = random.randint(0, len(self.Y) - 1)
-            print(f"Ground truth - {self.Y[index]}")
-            print(f"Prediction - {self.YHat[index]}")
-        # Clear predictions
-        self.Y.clear()
-        self.YHat.clear()
-        return metrics
-
-    def on_test_epoch_end(self):
-        return self.on_validation_epoch_end(name="test", print_random_samples=True)
