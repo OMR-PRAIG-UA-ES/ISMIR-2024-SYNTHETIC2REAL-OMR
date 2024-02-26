@@ -9,6 +9,7 @@ from networks.base.model import CTCTrainedCRNN
 
 class DATrainedCRNN(CTCTrainedCRNN):
     def __init__(self, src_checkpoint_path, ytest_i2w, bn_ids):
+        super(DATrainedCRNN, self).__init__(w2i={}, i2w={})
         # Save hyperparameters
         self.save_hyperparameters()
         # Source model checkpoint path
@@ -34,10 +35,11 @@ class DATrainedCRNN(CTCTrainedCRNN):
         src_model = CTCTrainedCRNN.load_from_checkpoint(
             self.src_checkpoint_path, ytest_i2w=self.ytest_i2w
         )
-        src_model.freeze()
         # 2) Freeze all the layers except for the layers previous
         # to the batch normalization layers indicated by self.bn_ids
         # and save the running mean and variance of the batch normalization layers
+        for param in src_model.model.parameters():
+            param.requires_grad = False
         self.bn_mean = []
         self.bn_var = []
         for id in self.bn_ids:
