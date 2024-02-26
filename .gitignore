@@ -1,0 +1,14 @@
+# Avoiding to upload the cache
+__pycache__
+
+# Avoiding to upload the datasets
+data/*
+
+# Avoid to upload the cache
+cache
+
+# Avoid to upload the logs
+wandb
+
+# Avoid to upload the model
+weights
