@@ -70,6 +70,10 @@ class SLTrainedCRNN(CTCTrainedCRNN):
             self.trainer.train_dataloader.dataset.Y
         )
         self.total_samples = len(self.trainer.train_dataloader.dataset.XTotal)
+        # Override the dataset vocabularies with those of the source data
+        # We are going to labelled the dataset with those!
+        self.trainer.train_dataloader.dataset.w2i = self.w2i
+        self.trainer.train_dataloader.dataset.i2w = self.i2w
 
     def on_train_epoch_start(self):
         self.perform_self_labelling()
