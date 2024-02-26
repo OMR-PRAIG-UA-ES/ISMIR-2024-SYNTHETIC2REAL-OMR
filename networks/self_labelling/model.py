@@ -16,7 +16,7 @@ class SLTrainedCRNN(CTCTrainedCRNN):
         confidence_threshold=0.9,
         use_augmentations=True,
     ):
-        super(SLTrainedCRNN, self).__init__(w2i={}, i2w={})
+        super(SLTrainedCRNN, self).__init__(w2i={}, i2w={}, ytest_i2w=ytest_i2w)
         # Save hyperparameters
         self.save_hyperparameters()
         ##################### Initialization constants:
