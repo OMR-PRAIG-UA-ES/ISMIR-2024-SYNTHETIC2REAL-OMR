@@ -1,6 +1,6 @@
 DS_CONFIG = {
     # Mensural
-    "b-59-850": {   # AKA Capitan
+    "b-59-850": {
         "train": "data/b-59-850/Folds/train_gt_fold0.dat",
         "val": "data/b-59-850/Folds/val_gt_fold0.dat",
         "test": "data/b-59-850/Folds/test_gt_fold0.dat",
@@ -34,34 +34,5 @@ DS_CONFIG = {
         "test": "data/Mottecta/Folds/test_gt_fold0.dat",
         "transcripts": "data/Mottecta/GT",
         "images": "data/Mottecta/Images",
-    },
-    # Modern
-    "Primus": {
-        "train": "data/Primus/Folds/train_gt_fold0.dat",
-        "val": "data/Primus/Folds/val_gt_fold0.dat",
-        "test": "data/Primus/Folds/test_gt_fold0.dat",
-        "transcripts": "data/Primus/GT",
-        "images": "data/Primus/Images",
-    },
-    "CameraPrimus": {
-        "train": "data/Primus/Folds/train_gt_fold0.dat",
-        "val": "data/Primus/Folds/val_gt_fold0.dat",
-        "test": "data/Primus/Folds/test_gt_fold0.dat",
-        "transcripts": "data/Primus/GT",
-        "images": "data/CameraPrimus/Images",
-    },
-    "FMT": {
-        "train": "data/FMT/Folds/train_gt_fold0.dat",
-        "val": "data/FMT/Folds/val_gt_fold0.dat",
-        "test": "data/FMT/Folds/test_gt_fold0.dat",
-        "transcripts": "data/FMT/GT",
-        "images": "data/FMT/Images",
-    },
-    "Malaga": {
-        "train": "data/Malaga/Folds/train_gt_fold0.dat",
-        "val": "data/Malaga/Folds/val_gt_fold0.dat",
-        "test": "data/Malaga/Folds/test_gt_fold0.dat",
-        "transcripts": "data/Malaga/GT",
-        "images": "data/Malaga/Images",
     },
 }
