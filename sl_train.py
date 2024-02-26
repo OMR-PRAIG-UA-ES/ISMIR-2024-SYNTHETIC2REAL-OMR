@@ -22,29 +22,26 @@ torch.backends.cudnn.deterministic = True
 
 from data.config import DS_CONFIG
 from my_utils.dataset import CTCDataset
-from networks.amd.da_model import DATrainedCRNN
+from networks.self_labelling.model import SLTrainedCRNN
 from my_utils.data_preprocessing import pad_batch_images
 
 
-def da_train(
+def self_labelled_train(
     # Datasets and model
     train_ds_name,
     test_ds_name,
     checkpoint_path,
     # Training hyperparameters
-    bn_ids,
-    align_loss_weight,
-    minimize_loss_weight,
-    diversify_loss_weight,
-    lr,
+    confidence_threshold=0.9,
     encoding_type="standard",
     epochs=1000,
     patience=20,
     batch_size=16,
+    use_augmentations=True,
     # Callbacks
     metric_to_monitor="val_ser",
     project="AMD-Self-Labelled-OMR",
-    group="Source-Free-Adaptation",
+    group="Self-Labelled-Adaptation",
     delete_checkpoint=False,
 ):
     gc.collect()
@@ -65,12 +62,8 @@ def da_train(
     print(f"\tSource model ({train_ds_name}): {checkpoint_path}")
     print(f"\tTarget dataset: {test_ds_name}")
     print(f"\tEncoding type: {encoding_type}")
-    print(f"\tBN identifiers: {bn_ids}")
-    print("\tLoss weights factors:")
-    print(f"\t\talign_loss_weight={align_loss_weight}")
-    print(f"\t\tminimize_loss_weight={minimize_loss_weight}")
-    print(f"\t\tdiversify_loss_weight={diversify_loss_weight}")
-    print(f"\tLearning rate: {lr}")
+    print(f"\tAugmentations: {use_augmentations}")
+    print(f"\tConfidence threshold: {confidence_threshold}")
     print(f"\tEpochs: {epochs}")
     print(f"\tPatience: {patience}")
     print(f"\tMetric to monitor: {metric_to_monitor}")
@@ -81,8 +74,7 @@ def da_train(
         samples_filepath=DS_CONFIG[test_ds_name]["train"],
         transcripts_folder=DS_CONFIG[test_ds_name]["transcripts"],
         img_folder=DS_CONFIG[test_ds_name]["images"],
-        train=False,
-        da_train=True,
+        train=True,
         encoding_type=encoding_type,
     )
     train_loader = DataLoader(
@@ -116,23 +108,16 @@ def da_train(
     )  # prefetch_factor=2
 
     # Model
-    bn_ids = [bn_ids] if type(bn_ids) == int else bn_ids
-    model = DATrainedCRNN(
-        src_checkpoint_path=checkpoint_path, ytest_i2w=train_ds.i2w, bn_ids=bn_ids
+    model = SLTrainedCRNN(
+        train_dataloader=train_loader,
+        src_checkpoint_path=checkpoint_path,
+        ytest_i2w=train_ds.i2w,
+        confidence_threshold=confidence_threshold,
+        use_augmentations=use_augmentations,
     )
     model_name = f"{encoding_type.upper()}-Train-{train_ds_name}_Test-{test_ds_name}"
-    model_name += f"_lr{lr}_bn{'-'.join([str(bn_id) for bn_id in bn_ids])}"
-    model_name += (
-        f"_a{align_loss_weight}_m{minimize_loss_weight}_d{diversify_loss_weight}"
-    )
-
-    # Loss
-    model.configure_da_loss(
-        lr=lr,
-        align_loss_weight=align_loss_weight,
-        minimize_loss_weight=minimize_loss_weight,
-        diversify_loss_weight=diversify_loss_weight,
-    )
+    model_name += f"_Confidence-{confidence_threshold}"
+    model_name += f"_Augment-{use_augmentations}"
 
     # Train and validate
     callbacks = [
@@ -178,7 +163,7 @@ def da_train(
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
     # Test
-    model = DATrainedCRNN.load_from_checkpoint(callbacks[0].best_model_path)
+    model = SLTrainedCRNN.load_from_checkpoint(callbacks[0].best_model_path)
     model.freeze()
     trainer.test(model, dataloaders=test_loader)
 
@@ -188,4 +173,4 @@ def da_train(
 
 
 if __name__ == "__main__":
-    fire.Fire(da_train)
+    fire.Fire(self_labelled_train)

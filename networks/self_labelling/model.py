@@ -8,7 +8,7 @@ from my_utils.augmentations import AugmentStage
 from my_utils.data_preprocessing import preprocess_image_from_file
 
 
-class DATrainedCRNN(CTCTrainedCRNN):
+class SLTrainedCRNN(CTCTrainedCRNN):
     def __init__(
         self,
         train_dataloader,
