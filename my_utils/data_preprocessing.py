@@ -40,7 +40,6 @@ def preprocess_transcript_from_file(
     path,
     w2i,
     encoding_type="standard",
-    remove_stem_direction=False,
 ):
     with open(path, "r") as file:
         y = file.read().strip()
@@ -51,9 +50,6 @@ def preprocess_transcript_from_file(
         # encoding_type == "split"
         # Ex.: y = ["clef", "G2, "note.black", "L1" ...]
         y = re.split(r"\s+|:", y)
-    if remove_stem_direction:
-        # Remove stem direction (up/down) from notes
-        y = [w.replace("_up", "").replace("_down", "") for w in y]
     return torch.tensor([w2i[w] for w in y])
 
 

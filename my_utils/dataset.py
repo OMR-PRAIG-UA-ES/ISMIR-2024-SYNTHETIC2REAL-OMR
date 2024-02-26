@@ -31,10 +31,6 @@ class CTCDataset(Dataset):
         self.width_reduction = width_reduction
         self.encoding_type = encoding_type
 
-        # Remove the appendix _up and _down from the notes in FMT and Malaga as
-        # Primus/CameraPrimus datasets do not have these appendixes
-        self.remove_stem_direction = True if self.name in ["FMT", "Malaga"] else False
-
         # Get image paths and transcripts
         self.X, self.Y = self.get_images_and_transcripts_filepaths(
             samples_filepath, img_folder, transcripts_folder
@@ -63,7 +59,6 @@ class CTCDataset(Dataset):
                 self.Y[idx],
                 self.w2i,
                 self.encoding_type,
-                self.remove_stem_direction,
             )
 
             if self.train:
@@ -129,9 +124,6 @@ class CTCDataset(Dataset):
                     words = re.split(r"\s+|:", file.read().strip())
                 vocab.update(words)
         vocab = sorted(vocab)
-        if self.remove_stem_direction:
-            vocab = [w.replace("_up", "").replace("_down", "") for w in vocab]
-            vocab = sorted(set(vocab))
 
         w2i = {}
         i2w = {}
