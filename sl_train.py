@@ -23,7 +23,7 @@ torch.backends.cudnn.deterministic = True
 from data.config import DS_CONFIG
 from my_utils.dataset import CTCDataset
 from networks.self_labelling.model import SLTrainedCRNN
-from my_utils.data_preprocessing import pad_batch_images
+from my_utils.data_preprocessing import ctc_batch_preparation
 
 
 def self_labelled_train(
@@ -74,7 +74,6 @@ def self_labelled_train(
         samples_filepath=DS_CONFIG[test_ds_name]["train"],
         transcripts_folder=DS_CONFIG[test_ds_name]["transcripts"],
         img_folder=DS_CONFIG[test_ds_name]["images"],
-        train=True,
         encoding_type=encoding_type,
     )
     train_loader = DataLoader(
@@ -82,7 +81,7 @@ def self_labelled_train(
         batch_size=batch_size,
         shuffle=True,
         num_workers=4,
-        collate_fn=pad_batch_images,
+        collate_fn=ctc_batch_preparation,
     )  # prefetch_factor=2
     val_ds = CTCDataset(
         name=test_ds_name,

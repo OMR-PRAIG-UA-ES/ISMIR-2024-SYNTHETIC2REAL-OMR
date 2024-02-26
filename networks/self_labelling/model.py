@@ -83,6 +83,7 @@ class SLTrainedCRNN(CTCTrainedCRNN):
             # Preprocess image
             x = preprocess_image_from_file(xpath)
             x = x.unsqueeze(0)  # Add batch dimension
+            x = x.to(self.device)
             # Model pass
             yhat = self.model(x)[0]  # yhat.shape = [frames, vocab_size]
             # Get most probable transcript and its probability values
