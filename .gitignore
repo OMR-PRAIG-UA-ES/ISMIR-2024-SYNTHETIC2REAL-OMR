@@ -12,3 +12,6 @@ wandb
 
 # Avoid to upload the model
 weights
+
+# Avoid uploading WANDB API Key
+wandb_api_key.txt
