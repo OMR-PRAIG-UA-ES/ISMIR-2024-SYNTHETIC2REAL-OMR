@@ -1,3 +1,4 @@
+import os
 import gc
 import random
 
@@ -22,6 +23,8 @@ torch.manual_seed(42)
 # Deterministic behavior
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
+
+os.environ["WANDB_API_KEY"] = open("wandb_api_key.txt", "r").read().strip().close()
 
 
 def train(

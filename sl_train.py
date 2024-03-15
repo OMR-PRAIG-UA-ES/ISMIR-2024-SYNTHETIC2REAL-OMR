@@ -25,6 +25,8 @@ from my_utils.dataset import CTCDataset
 from networks.self_labelling.model import SLTrainedCRNN
 from my_utils.data_preprocessing import ctc_batch_preparation
 
+os.environ["WANDB_API_KEY"] = open("wandb_api_key.txt", "r").read().strip().close()
+
 
 def self_labelled_train(
     # Datasets and model
