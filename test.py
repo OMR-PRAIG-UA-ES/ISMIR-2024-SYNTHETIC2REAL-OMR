@@ -22,7 +22,8 @@ torch.manual_seed(42)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-os.environ["WANDB_API_KEY"] = open("wandb_api_key.txt", "r").read().strip().close()
+with open("wandb_api_key.txt", "r") as f:
+    os.environ["WANDB_API_KEY"] = f.read().strip()
 
 
 def test(
