@@ -15,7 +15,7 @@ IMG_HEIGHT = 64
 
 
 @MEMORY.cache
-def preprocess_image_from_file(path):
+def preprocess_image_from_file(path, eps=1e-7):
     # Convert to grayscale
     x = Image.open(path).convert("L")
     # Resize (preserving aspect ratio)
@@ -24,7 +24,7 @@ def preprocess_image_from_file(path):
     # Convert to numpy array
     x = np.array(x, dtype=np.float32)
     # Normalize to [0, 1]
-    x = (x - np.amin(x)) / (np.amax(x) - np.amin(x))
+    x = (x - np.amin(x)) / (np.amax(x) - np.amin(x) + eps)
     # Add channel dimension
     x = np.expand_dims(x, axis=0)
     # Convert to tensor
