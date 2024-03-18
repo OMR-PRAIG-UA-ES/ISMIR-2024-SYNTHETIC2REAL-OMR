@@ -38,7 +38,7 @@ DS_CONFIG = {
     "Primens":  {
         "train": "data/Primens/Folds/train_gt_fold0.dat",
         "val": "data/Primens/Folds/val_gt_fold0.dat",
-        "test": "data/Primens/Folds/test_gt_fold0",
+        "test": "data/Primens/Folds/test_gt_fold0.dat",
         "transcripts": "data/Primens/GT",
         "images": "data/Primens/Images",
     },
