@@ -3,5 +3,4 @@ lightning
 torchinfo
 fire
 wandb
-scikit-learn
 joblib
