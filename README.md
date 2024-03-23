@@ -40,7 +40,7 @@ docker build --tag omr_amd:latest .
 ### Datasets
 
 **We evaluate our approach on mensural music notation:**
-- We use *Capitan* (or b-59-850), *Il Lauro Secco*, *Magnificat*, *Mottecta*, and *Guatemala* datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder.
+- We use *Capitan* (or Zaragoza), *Il Lauro Secco*, *Magnificat*, *Mottecta*, and *Guatemala* datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder.
 
 
 ### Experiments

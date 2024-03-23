@@ -1,11 +1,11 @@
 DS_CONFIG = {
     # Mensural
-    "b-59-850": {
-        "train": "data/b-59-850/Folds/train_gt_fold0.dat",
-        "val": "data/b-59-850/Folds/val_gt_fold0.dat",
-        "test": "data/b-59-850/Folds/test_gt_fold0.dat",
-        "transcripts": "data/b-59-850/GT",
-        "images": "data/b-59-850/Images",
+    "Zaragoza": {
+        "train": "data/Zaragoza/Folds/train_gt_fold0.dat",
+        "val": "data/Zaragoza/Folds/val_gt_fold0.dat",
+        "test": "data/Zaragoza/Folds/test_gt_fold0.dat",
+        "transcripts": "data/Zaragoza/GT",
+        "images": "data/Zaragoza/Images",
     },
     "Magnificat": {
         "train": "data/Magnificat/Folds/train_gt_fold0.dat",
