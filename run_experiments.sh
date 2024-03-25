@@ -12,3 +12,9 @@ for encoding in standard split; do
         python -u test.py --train_ds_name Primens --test_ds_name $test_ds --encoding_type $encoding --checkpoint_path weights/Baseline-UpperBound/Primens_${encoding}.ckpt
     done
 done
+# Synthetic-to-Real Source-Free Adaptation 
+for encoding in standard split; do
+    for test_ds in Zaragoza ILS Magnificat Guatemala Mottecta; do
+        python -u da_train_random_search.py --train_ds_name Primens --test_ds_name $test_ds --encoding_type $encoding --num_random_combinations 50
+    done
+done
