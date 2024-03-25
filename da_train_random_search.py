@@ -9,6 +9,9 @@ import wandb
 from da_train import da_train
 from networks.base.modules import BN_IDS
 
+with open("wandb_api_key.txt", "r") as f:
+    os.environ["WANDB_API_KEY"] = f.read().strip()
+
 
 def get_group_runs(project_name="AMD-Self-Labelled-OMR", group_name="SCapitan-TILS"):
     api = wandb.Api()
@@ -22,9 +25,6 @@ def get_group_runs(project_name="AMD-Self-Labelled-OMR", group_name="SCapitan-TI
 def run_sweep(
     train_ds_name, test_ds_name, encoding_type="standard", num_random_combinations=50
 ):
-    # Set WANDB API key
-    os.environ["WANDB_API_KEY"] = input("Enter your WANDB API key: ")
-
     # Get runs
     group_name = f"{encoding_type.upper()}-S{train_ds_name}-T{test_ds_name}"
     names = get_group_runs(group_name=group_name)
