@@ -25,6 +25,9 @@ from my_utils.dataset import CTCDataset
 from networks.amd.da_model import DATrainedCRNN
 from my_utils.data_preprocessing import pad_batch_images
 
+with open("wandb_api_key.txt", "r") as f:
+    os.environ["WANDB_API_KEY"] = f.read().strip()
+
 
 def da_train(
     # Datasets and model
