@@ -6,16 +6,17 @@ import numpy as np
 from PIL import Image
 import torch.nn.functional as F
 
-MEMORY = joblib.memory.Memory("./cache", mmap_mode="r", verbose=0)
 
 NUM_CHANNELS = 1
 IMG_HEIGHT = 64
+ENCODING_TYPES = ["standard", "split"]
+MEMORY = joblib.memory.Memory("./cache", mmap_mode="r", verbose=0)
 
 ################################# Image preprocessing:
 
 
 @MEMORY.cache
-def preprocess_image_from_file(path, eps=1e-7):
+def preprocess_image_from_file(path: str, eps: float = 1e-7) -> torch.Tensor:
     # Convert to grayscale
     x = Image.open(path).convert("L")
     # Resize (preserving aspect ratio)
@@ -37,10 +38,9 @@ def preprocess_image_from_file(path, eps=1e-7):
 
 @MEMORY.cache
 def preprocess_transcript_from_file(
-    path,
-    w2i,
-    encoding_type="standard",
-):
+    path: str,
+    encoding_type: str = "standard",
+) -> list[str]:
     with open(path, "r") as file:
         y = file.read().strip()
     if encoding_type == "standard":
@@ -50,26 +50,28 @@ def preprocess_transcript_from_file(
         # encoding_type == "split"
         # Ex.: y = ["clef", "G2, "note.black", "L1" ...]
         y = re.split(r"\s+|:", y)
-    return torch.tensor([w2i[w] for w in y])
+    return y
 
 
 ################################# CTC Preprocessing:
 
 
-def pad_batch_images(x):
+def pad_batch_images(x: list[torch.Tensor]) -> torch.Tensor:
     max_width = max(x, key=lambda sample: sample.shape[2]).shape[2]
     x = torch.stack([F.pad(i, pad=(0, max_width - i.shape[2])) for i in x], dim=0)
     return x
 
 
-def pad_batch_transcripts(x):
+def pad_batch_transcripts(x: list[torch.Tensor]) -> torch.Tensor:
     max_length = max(x, key=lambda sample: sample.shape[0]).shape[0]
     x = torch.stack([F.pad(i, pad=(0, max_length - i.shape[0])) for i in x], dim=0)
     x = x.type(torch.int32)
     return x
 
 
-def ctc_batch_preparation(batch):
+def ctc_batch_preparation(
+    batch: list[tuple[torch.Tensor, int, torch.Tensor, int]]
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     x, xl, y, yl = zip(*batch)
     # Zero-pad images to maximum batch image width
     x = pad_batch_images(x)

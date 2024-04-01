@@ -1,110 +1,75 @@
 import os
 import gc
-import random
 
 import fire
 import torch
-import numpy as np
 from lightning.pytorch import Trainer
-from torch.utils.data import DataLoader
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers.wandb import WandbLogger
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
-from data.config import DS_CONFIG
-from my_utils.dataset import CTCDataset
+from my_utils.seed import seed_everything
+from my_utils.dataset import CTCDataModule
 from networks.base.model import CTCTrainedCRNN
-from my_utils.data_preprocessing import ctc_batch_preparation
 
-# Seed
-random.seed(42)
-np.random.seed(42)
-torch.manual_seed(42)
+seed_everything(42, deterministic=False)  # CTC does not have deterministic mode
 
-# Deterministic behavior
-torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = True
-
+# Set WANDB_API_KEY
 with open("wandb_api_key.txt", "r") as f:
     os.environ["WANDB_API_KEY"] = f.read().strip()
 
 
 def train(
-    ds_name,
-    encoding_type="standard",
-    epochs=1000,
-    patience=20,
-    batch_size=16,
-    use_augmentations=True,
-    metric_to_monitor="val_ser",
-    project="AMD-Self-Labelled-OMR",
-    group="Baseline-UpperBound",
+    ds_name: str,
+    encoding_type: str = "standard",
+    use_train_data_augmentation: bool = True,
+    epochs: int = 1000,
+    patience: int = 20,
+    train_batch_size: int = 16,
+    num_workers: int = 10,
+    project: str = "AMD-Synth2Real-OMR",
+    group: str = "Baseline-UpperBound",
 ):
+    # Clear memory
     gc.collect()
     torch.cuda.empty_cache()
 
-    # Check if dataset exists
-    if ds_name not in DS_CONFIG.keys():
-        raise NotImplementedError(f"Dataset {ds_name} not implemented")
+    # Get all the inputs to the function as a dictionary
+    args = dict(locals())
 
     # Experiment info
     print(f"Running experiment: {project} - {group}")
-    print(f"\tDataset(s): {ds_name}")
+    print(f"\tDataset: {ds_name}")
     print(f"\tEncoding type: {encoding_type}")
-    print(f"\tAugmentations: {use_augmentations}")
+    print(f"\tTrain Augmentations?: {use_train_data_augmentation}")
     print(f"\tEpochs: {epochs}")
     print(f"\tPatience: {patience}")
-    print(f"\tMetric to monitor: {metric_to_monitor}")
+    print(f"\tTrain Batch Size: {train_batch_size}")
+    print(f"\tNum Workers: {num_workers}")
 
-    # Get datasets
-    train_ds = CTCDataset(
-        name=ds_name,
-        samples_filepath=DS_CONFIG[ds_name]["train"],
-        transcripts_folder=DS_CONFIG[ds_name]["transcripts"],
-        img_folder=DS_CONFIG[ds_name]["images"],
+    # Get datamodule
+    datamodule = CTCDataModule(
+        ds_name=ds_name,
+        exp_type="train",
         encoding_type=encoding_type,
+        use_train_data_augmentation=use_train_data_augmentation,
+        train_batch_size=train_batch_size,
+        num_workers=num_workers,
     )
-    train_loader = DataLoader(
-        train_ds,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=4,
-        collate_fn=ctc_batch_preparation,
-    )  # prefetch_factor=2
-    val_ds = CTCDataset(
-        name=ds_name,
-        samples_filepath=DS_CONFIG[ds_name]["val"],
-        transcripts_folder=DS_CONFIG[ds_name]["transcripts"],
-        img_folder=DS_CONFIG[ds_name]["images"],
-        train=False,
-        encoding_type=encoding_type,
-    )
-    val_loader = DataLoader(
-        val_ds, batch_size=1, shuffle=False, num_workers=4
-    )  # prefetch_factor=2
-    test_ds = CTCDataset(
-        name=ds_name,
-        samples_filepath=DS_CONFIG[ds_name]["test"],
-        transcripts_folder=DS_CONFIG[ds_name]["transcripts"],
-        img_folder=DS_CONFIG[ds_name]["images"],
-        train=False,
-        encoding_type=encoding_type,
-    )
-    test_loader = DataLoader(
-        test_ds, batch_size=1, shuffle=False, num_workers=4
-    )  # prefetch_factor=2
+    datamodule.setup("fit")
 
     # Model
     model = CTCTrainedCRNN(
-        w2i=train_ds.w2i, i2w=train_ds.i2w, use_augmentations=use_augmentations
+        w2i=datamodule.get_w2i(),
+        i2w=datamodule.get_i2w(),
+        encoding_type=encoding_type,
     )
-    train_ds.width_reduction = model.model.cnn.width_reduction
 
     # Train and validate
     callbacks = [
         ModelCheckpoint(
             dirpath=f"weights/{group}",
             filename=f"{ds_name}_{encoding_type}",
-            monitor=metric_to_monitor,
+            monitor="val_ser",
             verbose=True,
             save_last=False,
             save_top_k=1,
@@ -115,7 +80,7 @@ def train(
             save_on_train_epoch_end=False,
         ),
         EarlyStopping(
-            monitor=metric_to_monitor,
+            monitor="val_ser",
             min_delta=0.1,
             patience=patience,
             verbose=True,
@@ -132,24 +97,20 @@ def train(
             group=group,
             name=f"{encoding_type.upper()}-Train-{ds_name}_Test-{ds_name}",
             log_model=False,
+            config=args,
             entity="grfia",
         ),
         callbacks=callbacks,
         max_epochs=epochs,
         check_val_every_n_epoch=1,
-        deterministic=False,  # If True, raises error saying that CTC loss does not have this behaviour
-        benchmark=False,
-        precision="16-mixed",  # Mixed precision training
-        fast_dev_run=False,  # Set to True to check if everything is working
+        precision="16-mixed",
     )
-    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    trainer.fit(model, datamodule=datamodule)
 
     # Test
-    model = CTCTrainedCRNN.load_from_checkpoint(
-        callbacks[0].best_model_path, ytest_i2w=test_ds.i2w
-    )
+    model = CTCTrainedCRNN.load_from_checkpoint(callbacks[0].best_model_path)
     model.freeze()
-    trainer.test(model, dataloaders=test_loader)
+    trainer.test(model, datamodule=datamodule)
 
 
 if __name__ == "__main__":
