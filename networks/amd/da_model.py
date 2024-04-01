@@ -9,7 +9,7 @@ from networks.base.model import CTCTrainedCRNN
 
 class DATrainedCRNN(CTCTrainedCRNN):
     def __init__(self, src_checkpoint_path: str, bn_ids: list[int]):
-        super(DATrainedCRNN, self).__init__(w2i={}, i2w={})
+        super(DATrainedCRNN, self).__init__(w2i={"<PAD>": 0}, i2w={0: "<PAD>"})
         # Save hyperparameters
         self.save_hyperparameters()
         # Source model checkpoint path
@@ -71,7 +71,7 @@ class DATrainedCRNN(CTCTrainedCRNN):
         # 1) Initialize the learning rate
         self.lr = lr
         # 2) Initialize the loss function
-        self.compute_da_loss = AMDLoss(
+        self.compute_amd_loss = AMDLoss(
             bn_stats=self.bn_stats,
             align_loss_weight=align_loss_weight,
             minimize_loss_weight=minimize_loss_weight,

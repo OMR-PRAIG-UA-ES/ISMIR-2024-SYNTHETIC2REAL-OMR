@@ -41,6 +41,10 @@ class CRNN(nn.Module):
             if isinstance(layer, nn.BatchNorm2d) and id in BN_IDS:
                 prev_norm[id] = x.clone()
             x = layer(x)
+        # Prepare for RNN
+        b, _, _, w = x.size()
+        x = x.permute(0, 3, 1, 2).contiguous()
+        x = x.reshape(b, w, self.decoder_input_size)
         # Decoder (RNN)
         x = self.decoder(x)
         return x, prev_norm
