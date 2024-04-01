@@ -1,7 +1,9 @@
 import os
 
-import torch
+import cv2
 import fire
+import torch
+import numpy as np
 
 from networks.base.model import CTCTrainedCRNN
 from networks.amd.da_model import DATrainedCRNN
@@ -19,11 +21,10 @@ class GradCAM:
 
     def __init__(self, model: torch.nn.Module, device: torch.device):
         super(GradCAM, self).__init__()
-        # Constants
         self.model = model
         self.device = device
 
-    def make_gradcam(self, img_path: str):
+    def make_gradcam(self, img_path: str) -> torch.Tensor:
         # Preprocess input image
         x = preprocess_image_from_file(img_path)
         x = x.unsqueeze(0).to(self.device)
@@ -31,54 +32,49 @@ class GradCAM:
         # 1. Retrieving the gradients of the top predicted class:
         # Encoder (CNN)
         ypred_encoder = self.model.encoder(x)
-        ypred_encoder.requires_grad_(True)  # Watch for gradient calculation
+        ypred_encoder = ypred_encoder.requires_grad_(True)  # Detach the tensor before calculating gradients
         # Prepare for RNN
-        _, _, _, w = ypred_encoder.size()
-        ypred_encoder = ypred_encoder.permute(0, 3, 1, 2).contiguous()
-        ypred_encoder = ypred_encoder.reshape(1, w, self.decoder_input_size)
-        # Decoder (RNN) -> ypred.shape = (seq_len, num_classes)
-        ypred = self.model.decoder(ypred_encoder)[0]
+        _, _, _, w = ypred_encoder.size() # 1, 128, 64 / 16 = 4, w
+        ypred = ypred_encoder.permute(0, 3, 1, 2).contiguous()
+        ypred = ypred.reshape(1, w, self.model.decoder_input_size)
+        # Decoder (RNN) -> ypred.shape = (batch_size, seq_len, num_classes)
+        ypred = self.model.decoder(ypred)
         # Extract the top class channels
-        top_class_channels = ypred[:, torch.argmax(ypred, dim=1)]
+        top_class_channels = torch.topk(ypred, k=1, dim=-1, sorted=False).values.squeeze()
         # Compute gradients
-        top_class_channels.backward()
+        torch.autograd.backward(top_class_channels, torch.ones_like(top_class_channels))
         # Extract gradients with respect to encoder output
         grads = ypred_encoder.grad
 
         # 2. Gradient pooling and channel-importance weighting:
-        print(grads.shape)
-        pooled_grads = torch.mean(grads, dim=(0, 1, 2)).cpu().numpy()
-        ypred_encoder = ypred_encoder.cpu().numpy()[0]
-        print(ypred_encoder.shape)
-        # for i in range(pooled_grads.shape[-1]):
-        #     last_conv_layer_output[:, :, i] *= pooled_grads[i]
-        # heatmap = np.mean(last_conv_layer_output, axis=-1)
+        pooled_grads = torch.mean(grads, dim=(0, 2, 3)).detach() # pooled_grads.shape = (128,)
+        ypred_encoder = ypred_encoder.detach()
+        # Multiply pooled gradients with encoder output
+        for i in range(ypred_encoder.shape[1]):
+            ypred_encoder[:, i, :, :] *= pooled_grads[i]
+        heatmap = torch.mean(ypred_encoder, dim=1).squeeze()
 
-        # # 3. Heatmap postprocessing:
-        # heatmap = np.maximum(heatmap, 0)
-        # heatmap /= np.max(heatmap)
-        # return heatmap
+        # 3. Heatmap postprocessing:
+        heatmap = torch.maximum(heatmap, torch.zeros_like(heatmap))
+        heatmap /= torch.max(heatmap)
+        return {"heatmap": heatmap, "img": x[0].permute(1, 2, 0)}
 
     def get_and_save_gradcam_heatmap(self, img_path: str, grad_img_output_path: str):
-        pass
-        #     # Make the heatmap
-        # heatmap = self.make_gradcam(img_path=img_path)
-        # Rescale heatmap
-        # heatmap = np.uint8(255 * heatmap)
+        # Apply Grad-CAM
+        gc_output = self.make_gradcam(img_path=img_path)
+        heatmap = gc_output["heatmap"].cpu().numpy()
+        img = gc_output["img"].repeat(1, 1, 3).cpu().numpy()
+        
+        # Combine heatmap with original image
+        heatmap = cv2.resize(heatmap, (img.shape[1], img.shape[0]))
+        heatmap = cv2.applyColorMap(np.uint8(255 * heatmap), cv2.COLORMAP_JET)
+        heatmap = np.float32(heatmap) / 255
+        img_cam = heatmap + img
+        img_cam = img_cam / np.max(img_cam)
+        # img_cam = cv2.cvtColor(img_cam,cv2.COLOR_RGB2BGR)
 
-        # # Use the jet colormap to recolorize the heatmap
-        # jet = cm.get_cmap("jet")
-        # jet_colors = jet(np.arange(256))[:, :3]
-        # jet_heatmap = jet_colors[heatmap]
-
-        # #
-        # jet_heatmap = keras.utils.array_to_img(jet_heatmap)
-        # jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
-        # jet_heatmap = keras.utils.img_to_array(jet_heatmap)
-        # superimposed_img = jet_heatmap * 0.4 + img
-        # superimposed_img = keras.utils.array_to_img(superimposed_img)
-        # save_path = "elephant_cam.jpg"
-        # superimposed_img.save(save_path)
+        # Save Grad-CAM image
+        cv2.imwrite(grad_img_output_path, np.uint8(255 * img_cam))
 
 
 def run_grad_cam(checkpoint_path: str, img_path: str):
