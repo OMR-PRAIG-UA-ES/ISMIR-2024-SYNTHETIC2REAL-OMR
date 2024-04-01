@@ -78,10 +78,10 @@ class DATrainedCRNN(CTCTrainedCRNN):
             diversify_loss_weight=diversify_loss_weight,
         )
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.AdamW(self.model.parameters(), lr=self.lr)
 
-    def training_step(self, batch: tuple[torch.Tensor]):
+    def training_step(self, batch: tuple[torch.Tensor]) -> torch.Tensor:
         x = batch
         yhat, y_prev_bn = self.model.da_forward(x=x, bn_ids=self.bn_ids)
         loss_dict = self.compute_amd_loss(y=yhat, y_prev_bn=y_prev_bn)

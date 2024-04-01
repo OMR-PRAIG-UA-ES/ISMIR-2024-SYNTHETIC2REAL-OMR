@@ -50,7 +50,7 @@ class CTCTrainedCRNN(LightningModule):
     def summary(self):
         summary(self.model, input_size=[1, NUM_CHANNELS, IMG_HEIGHT, 256])
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.AdamW(self.model.parameters(), lr=1e-3)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -58,7 +58,7 @@ class CTCTrainedCRNN(LightningModule):
 
     def training_step(
         self, batch: tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
-    ):
+    ) -> torch.Tensor:
         x, xl, y, yl = batch
         yhat = self.forward(x)
         # ------ CTC Requirements ------
@@ -83,10 +83,10 @@ class CTCTrainedCRNN(LightningModule):
         self.Y.append(y)  # batch_size = 1
         self.YHat.append(yhat)
 
-    def test_step(self, batch, batch_idx):
-        return self.validation_step(batch, batch_idx)
+    def test_step(self, batch: list[torch.Tensor, tuple[str]]):
+        return self.validation_step(batch)
 
-    def on_validation_epoch_end(self, name="val", print_random_samples=False):
+    def on_validation_epoch_end(self, name: str = "val", print_random_samples: bool =False) -> dict[str, float]:
         metrics = compute_metrics(y_true=self.Y, y_pred=self.YHat)
         for k, v in metrics.items():
             self.log(f"{name}_{k}", v, prog_bar=True, logger=True, on_epoch=True)
@@ -100,5 +100,5 @@ class CTCTrainedCRNN(LightningModule):
         self.YHat.clear()
         return metrics
 
-    def on_test_epoch_end(self):
+    def on_test_epoch_end(self) -> dict[str, float]:
         return self.on_validation_epoch_end(name="test", print_random_samples=True)
