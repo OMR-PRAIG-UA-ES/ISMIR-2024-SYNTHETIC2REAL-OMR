@@ -79,7 +79,8 @@ class CTCTrainedCRNN(LightningModule):
             y_pred=yhat, i2w=self.i2w, blank_padding_token=self.blank_padding_token
         )
         # Append to later compute metrics
-        self.Y.extend(y)  # batch_size = 1
+        y = [item for sublist in y for item in sublist]
+        self.Y.append(y)  # batch_size = 1
         self.YHat.append(yhat)
 
     def test_step(self, batch, batch_idx):
