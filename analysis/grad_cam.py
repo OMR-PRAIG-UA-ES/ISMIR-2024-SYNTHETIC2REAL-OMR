@@ -1,4 +1,5 @@
 import os
+import gc
 
 import cv2
 import fire
@@ -39,10 +40,11 @@ class GradCAM:
         ypred = ypred.reshape(1, w, self.model.decoder_input_size)
         # Decoder (RNN) -> ypred.shape = (batch_size, seq_len, num_classes)
         ypred = self.model.decoder(ypred)
+        ypred = ypred.log_softmax(dim=-1)
         # Extract the top class channels
         top_class_channels = torch.topk(ypred, k=1, dim=-1, sorted=False).values.squeeze()
         # Compute gradients
-        torch.autograd.backward(top_class_channels, torch.ones_like(top_class_channels))
+        torch.autograd.backward(top_class_channels, torch.clone(top_class_channels.detach())) 
         # Extract gradients with respect to encoder output
         grads = ypred_encoder.grad
 
@@ -78,6 +80,10 @@ class GradCAM:
 
 
 def run_grad_cam(checkpoint_path: str, img_path: str):
+    # Clear memory
+    gc.collect()
+    torch.cuda.empty_cache()
+
     # Check if checkpoint path exists
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint path {checkpoint_path} does not exist")
@@ -104,6 +110,10 @@ def run_grad_cam(checkpoint_path: str, img_path: str):
     grad_cam.get_and_save_gradcam_heatmap(
         img_path=img_path, grad_img_output_path=output_path
     )
+
+    # Clear memory
+    gc.collect()
+    torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":
