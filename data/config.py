@@ -35,7 +35,7 @@ DS_CONFIG = {
         "transcripts": "data/Mottecta/GT",
         "images": "data/Mottecta/Images",
     },
-    "Primens":  {
+    "Primens": {
         "train": "data/Primens/Folds/train_gt_fold0.dat",
         "val": "data/Primens/Folds/val_gt_fold0.dat",
         "test": "data/Primens/Folds/test_gt_fold0.dat",
@@ -43,3 +43,5 @@ DS_CONFIG = {
         "images": "data/Primens/Images",
     },
 }
+
+DATASETS = list(DS_CONFIG.keys())

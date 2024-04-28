@@ -1,67 +1,57 @@
 import gc
 import os
-import random
 
 import fire
 import torch
-import numpy as np
 
 from lightning.pytorch import Trainer
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers.wandb import WandbLogger
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
-# Seed
-random.seed(42)
-np.random.seed(42)
-torch.manual_seed(42)
 
-# Deterministic behavior
-torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = False
-
-from data.config import DS_CONFIG
-from my_utils.dataset import CTCDataset
+from my_utils.seed import seed_everything
+from my_utils.dataset import CTCDataModule
 from networks.amd.da_model import DATrainedCRNN
-from my_utils.data_preprocessing import pad_batch_images
 
+seed_everything(42)
+
+# Set WANDB_API_KEY
 with open("wandb_api_key.txt", "r") as f:
     os.environ["WANDB_API_KEY"] = f.read().strip()
 
 
 def da_train(
     # Datasets and model
-    train_ds_name,
-    test_ds_name,
-    checkpoint_path,
+    train_ds_name: str,
+    test_ds_name: str,
+    checkpoint_path: str,
     # Training hyperparameters
-    bn_ids,
-    align_loss_weight,
-    minimize_loss_weight,
-    diversify_loss_weight,
-    lr,
-    encoding_type="standard",
-    epochs=1000,
-    patience=20,
-    batch_size=16,
+    bn_ids: list[int],
+    align_loss_weight: float = 1.0,
+    minimize_loss_weight: float = 1.0,
+    diversify_loss_weight: float = 1.0,
+    lr: float = 3e-4,
+    encoding_type: str = "standard",
+    epochs: int = 1000,
+    patience: int = 20,
+    train_batch_size: int = 16,
+    num_workers: int = 10,
     # Callbacks
-    metric_to_monitor="val_ser",
-    project="AMD-Self-Labelled-OMR",
-    group="Source-Free-Adaptation",
-    delete_checkpoint=False,
+    project: str = "AMD-Synth2Real-OMR",
+    group: str = "Source-Free-Adaptation",
+    return_run_stats: bool = False,
 ):
+    # Clear memory
     gc.collect()
     torch.cuda.empty_cache()
+
+    # Get all the inputs to the function as a dictionary
+    args = dict(locals())
 
     # Check if checkpoint path exists
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint path {checkpoint_path} does not exist")
-
-    # Check if datasets exist
-    if not train_ds_name in DS_CONFIG.keys():
-        raise NotImplementedError(f"Train dataset {train_ds_name} not implemented")
-    if not test_ds_name in DS_CONFIG.keys():
-        raise NotImplementedError(f"Test dataset {test_ds_name} not implemented")
 
     # Experiment info
     print(f"Running experiment: {project} - {group}")
@@ -76,53 +66,23 @@ def da_train(
     print(f"\tLearning rate: {lr}")
     print(f"\tEpochs: {epochs}")
     print(f"\tPatience: {patience}")
-    print(f"\tMetric to monitor: {metric_to_monitor}")
+    print(f"\tTrain Batch Size: {train_batch_size}")
+    print(f"\tNum Workers: {num_workers}")
 
-    # Get dataset
-    train_ds = CTCDataset(
-        name=test_ds_name,
-        samples_filepath=DS_CONFIG[test_ds_name]["train"],
-        transcripts_folder=DS_CONFIG[test_ds_name]["transcripts"],
-        img_folder=DS_CONFIG[test_ds_name]["images"],
-        train=False,
-        da_train=True,
+    # Get datamodule
+    datamodule = CTCDataModule(
+        ds_name=test_ds_name,
+        exp_type="da_train",
         encoding_type=encoding_type,
+        use_train_data_augmentation=False,
+        train_batch_size=train_batch_size,
+        num_workers=num_workers,
     )
-    train_loader = DataLoader(
-        train_ds,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=4,
-        collate_fn=pad_batch_images,
-    )  # prefetch_factor=2
-    val_ds = CTCDataset(
-        name=test_ds_name,
-        samples_filepath=DS_CONFIG[test_ds_name]["val"],
-        transcripts_folder=DS_CONFIG[test_ds_name]["transcripts"],
-        img_folder=DS_CONFIG[test_ds_name]["images"],
-        train=False,
-        encoding_type=encoding_type,
-    )
-    val_loader = DataLoader(
-        val_ds, batch_size=1, shuffle=False, num_workers=4
-    )  # prefetch_factor=2
-    test_ds = CTCDataset(
-        name=test_ds_name,
-        samples_filepath=DS_CONFIG[test_ds_name]["test"],
-        transcripts_folder=DS_CONFIG[test_ds_name]["transcripts"],
-        img_folder=DS_CONFIG[test_ds_name]["images"],
-        train=False,
-        encoding_type=encoding_type,
-    )
-    test_loader = DataLoader(
-        test_ds, batch_size=1, shuffle=False, num_workers=4
-    )  # prefetch_factor=2
+    datamodule.setup("fit")
 
     # Model
     bn_ids = [bn_ids] if type(bn_ids) == int else bn_ids
-    model = DATrainedCRNN(
-        src_checkpoint_path=checkpoint_path, ytest_i2w=train_ds.i2w, bn_ids=bn_ids
-    )
+    model = DATrainedCRNN(src_checkpoint_path=checkpoint_path, bn_ids=bn_ids)
     model_name = f"{encoding_type.upper()}-Train-{train_ds_name}_Test-{test_ds_name}"
     model_name += f"_lr{lr}_bn{'-'.join([str(bn_id) for bn_id in bn_ids])}"
     model_name += (
@@ -142,7 +102,7 @@ def da_train(
         ModelCheckpoint(
             dirpath=f"weights/{group}",
             filename=model_name,
-            monitor=metric_to_monitor,
+            monitor="val_ser",
             verbose=True,
             save_last=False,
             save_top_k=1,
@@ -153,7 +113,7 @@ def da_train(
             save_on_train_epoch_end=False,
         ),
         EarlyStopping(
-            monitor=metric_to_monitor,
+            monitor="val_ser",
             min_delta=0.1,
             patience=patience,
             verbose=True,
@@ -170,25 +130,27 @@ def da_train(
             group=group,
             name=model_name,
             log_model=False,
+            config=args,
             entity="grfia",
         ),
         callbacks=callbacks,
         max_epochs=epochs,
         check_val_every_n_epoch=1,
-        deterministic=False,
-        benchmark=False,
-        precision="16-mixed",  # Mixed precision training
+        precision="16-mixed",
     )
-    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    trainer.fit(model, datamodule=datamodule)
 
     # Test
     model = DATrainedCRNN.load_from_checkpoint(callbacks[0].best_model_path)
     model.freeze()
-    trainer.test(model, dataloaders=test_loader)
+    trainer.test(model, datamodule=datamodule)
 
     # Remove checkpoint
-    if delete_checkpoint:
-        os.remove(callbacks[0].best_model_path)
+    if return_run_stats:
+        return {
+            "checkpoint_path": callbacks[0].best_model_path,
+            "test_ser": trainer.callback_metrics["test_ser"],
+        }
 
 
 if __name__ == "__main__":

@@ -22,6 +22,6 @@ class AugmentStage(nn.Module):
             ]
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
-            return torch.stack([self.transforms(image) for image in x])
+            return self.transforms(x)

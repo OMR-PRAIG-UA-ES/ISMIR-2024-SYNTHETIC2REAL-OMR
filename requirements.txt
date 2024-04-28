@@ -4,3 +4,5 @@ torchinfo
 fire
 wandb
 joblib
+matplotlib
+opencv-python
