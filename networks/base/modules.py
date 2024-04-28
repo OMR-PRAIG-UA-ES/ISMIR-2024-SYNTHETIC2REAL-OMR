@@ -38,7 +38,7 @@ class CRNN(nn.Module):
         prev_norm = {}
         # Encoder (CNN)
         for id, layer in enumerate(self.encoder.backbone):
-            if isinstance(layer, nn.BatchNorm2d) and id in BN_IDS:
+            if isinstance(layer, nn.BatchNorm2d) and id in bn_ids:
                 prev_norm[id] = x.clone()
             x = layer(x)
         # Prepare for RNN
