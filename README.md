@@ -9,7 +9,7 @@
 --->
 
 <p align='center'>
-  <img src='https://img.shields.io/badge/python-3.9.0-orange' alt='Python'>
+  <img src='https://img.shields.io/badge/python-3.10.0-orange' alt='Python'>
   <img src='https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white' alt='PyTorch'>
   <img src='https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white' alt='Lightning'>
   <img src='https://img.shields.io/static/v1?label=License&message=MIT&color=blue' alt='License'>
