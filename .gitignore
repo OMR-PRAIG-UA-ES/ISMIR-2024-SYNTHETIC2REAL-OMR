@@ -15,3 +15,6 @@ weights
 
 # Avoid uploading WANDB API Key
 wandb_api_key.txt
+
+# Avoid to updte GradCAM images
+analysis/grad_cam_outputs
