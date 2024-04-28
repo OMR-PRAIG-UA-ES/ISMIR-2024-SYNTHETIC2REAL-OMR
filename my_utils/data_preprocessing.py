@@ -12,6 +12,12 @@ IMG_HEIGHT = 64
 ENCODING_TYPES = ["standard", "split"]
 MEMORY = joblib.memory.Memory("./cache", mmap_mode="r", verbose=0)
 
+
+def set_pad_index(index: int):
+    global PAD_INDEX
+    PAD_INDEX = index
+
+
 ################################# Image preprocessing:
 
 
@@ -64,7 +70,9 @@ def pad_batch_images(x: list[torch.Tensor]) -> torch.Tensor:
 
 def pad_batch_transcripts(x: list[torch.Tensor]) -> torch.Tensor:
     max_length = max(x, key=lambda sample: sample.shape[0]).shape[0]
-    x = torch.stack([F.pad(i, pad=(0, max_length - i.shape[0])) for i in x], dim=0)
+    x = torch.stack(
+        [F.pad(i, pad=(0, max_length - i.shape[0]), value=PAD_INDEX) for i in x], dim=0
+    )
     x = x.type(torch.int32)
     return x
 

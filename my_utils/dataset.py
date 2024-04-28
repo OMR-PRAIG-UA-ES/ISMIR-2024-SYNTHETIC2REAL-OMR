@@ -15,6 +15,7 @@ from my_utils.data_preprocessing import (
     preprocess_transcript_from_file,
     ctc_batch_preparation,
     pad_batch_images,
+    set_pad_index,
 )
 
 EXPERIMENT_TYPES = ["train", "test", "da_train"]
@@ -163,6 +164,8 @@ class CTCDataset(Dataset):
         os.makedirs(vocab_folder, exist_ok=True)
         self.w2i_path = os.path.join(vocab_folder, vocab_name)
         self.w2i, self.i2w = self.check_and_retrieve_vocabulary()
+        # Modify the global PAD_INDEX to match w2i["<PAD>"]
+        set_pad_index(self.w2i["<PAD>"])
 
         # Set data augmentation
         self.augment = AugmentStage() if use_train_data_augmentation else lambda x: x
