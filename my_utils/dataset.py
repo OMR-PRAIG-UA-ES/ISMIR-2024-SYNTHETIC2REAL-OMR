@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from typing import Callable
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -245,7 +246,10 @@ class CTCDataset(Dataset):
     def __len__(self) -> int:
         return len(self.XFiles)
 
-    def __setgetitem__(self) -> callable:
+    def __setgetitem__(self) -> Callable[
+        [int],
+        tuple[torch.Tensor, int, torch.Tensor, int] | tuple[torch.Tensor, list[str]],
+    ]:
         if self.exp_type == "train":
             self.__getitem_func = self.__traingetitem__
         elif self.exp_type == "test":
