@@ -16,8 +16,8 @@
 <p align='center'>
   <!---<a href='#about'>About</a> •--->
   <a href='#how-to-use'>How To Use</a> •
-  <!---<a href='#citations'>Citations</a> •
-  <a href='#acknowledgments'>Acknowledgments</a> •--->
+  <a href='#citations'>Citations</a> •
+  <a href='#acknowledgments'>Acknowledgments</a> •
   <a href='#license'>License</a>
 </p>
 
@@ -40,12 +40,9 @@ docker build --tag omr_amd:latest .
 **We evaluate our approach on mensural music notation:**
 - We use *Capitan* (or Zaragoza), *Il Lauro Secco*, *Magnificat*, *Mottecta*, and *Guatemala* datasets. These are private datasets and are available upon [request](mailto:malfaro@dlsi.ua.es). After obtaining these datasets, please place them in the [`data`](data) folder.
 
-
 ### Experiments
 
 We use Primens as the source dataset and try to adapt its corresponding source model to each of the remaining datasets. We use the Align, Minimize and Diversify (AMD) method to perform a source-free domain adaptation. Specifically, we perform a random seach of 50 runs for each source-target combination and keep the best one as the final result.
-
-
 
 Execute the [`run_experiments.sh`](run_experiments.sh) script to replicate the experiments from our work:
 ```bash 
@@ -53,27 +50,26 @@ $ bash run_experiments.sh
 ```
 
 
-<!---
 ## Citations
 
 ```bibtex
-@inproceedings{,
-  title     = {{}},
-  author    = {},
-  booktitle = {{}},
-  year      = {},
-  publisher = {},
-  address   = {},
-  month     = {},
+@inproceedings{luna2024syn2realomr,
+  title     = {{Unsupervised Synthetic-to-Real Adaptation for Optical Music Recognition}},
+  author    = {Luna-Barahona, Noelia and Roselló, Adrián and Alfaro-Contreras, Mar{\'\i}a and Rizo, David and Calvo-Zaragoza, Jorge},
+  booktitle = {{Proceedings of the 25th International Society for Music Information Retrieval Conference}},
+  year      = {2024},
+  publisher = {ISMIR},
+  address   = {San Francisco, United States},
+  month     = {nov},
 }
 ```
 
 
-
 ## Acknowledgments
 
-This work is part of the I+D+i PID2020-118447RA-I00 ([MultiScore](https://sites.google.com/view/multiscore-project)) project, funded by MCIN/AEI/10.13039/501100011033.
---->
+This work is supported by grant CISEJI/2023/9 from "Programa para el apoyo a personas investigadoras con talento (Plan GenT) de la Generalitat Valenciana".
+
+
 ## License
 
 This work is under a [MIT](LICENSE) license.
